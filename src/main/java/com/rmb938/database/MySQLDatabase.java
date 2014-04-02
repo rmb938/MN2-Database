@@ -34,18 +34,18 @@ public class MySQLDatabase extends Database {
 
     @Override
     public void setupDatabase() {
-        BasicDataSource ds = new BasicDataSource();
-        ds.setDriverClassName("com.mysql.jdbc.Driver");
-        ds.setUrl("jdbc:mysql://" + address + ":" + port + "/" + database);
-        ds.setUsername(userName);
-        ds.setPassword(password);
-        ds.setMaxActive(100);
-        ds.setMaxIdle(10);
-        ds.setMinEvictableIdleTimeMillis(1800000);
-        ds.setNumTestsPerEvictionRun(3);
-        ds.setTimeBetweenEvictionRunsMillis(1800000);
-        ds.setTestOnBorrow(false);
-        ds.setTestWhileIdle(true);
+        dataSource = new BasicDataSource();
+        dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://" + address + ":" + port + "/" + database);
+        dataSource.setUsername(userName);
+        dataSource.setPassword(password);
+        dataSource.setMaxActive(100);
+        dataSource.setMaxIdle(10);
+        dataSource.setMinEvictableIdleTimeMillis(1800000);
+        dataSource.setNumTestsPerEvictionRun(3);
+        dataSource.setTimeBetweenEvictionRunsMillis(1800000);
+        dataSource.setTestOnBorrow(false);
+        dataSource.setTestWhileIdle(true);
     }
 
     public Connection getConnection() throws SQLException {
@@ -58,11 +58,12 @@ public class MySQLDatabase extends Database {
 
     public boolean isTable(String tableName) {
         boolean exists = false;
-        Connection connection = null;
+        Connection connection;
         try {
             connection = getConnection();
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, null, ex);
+            return false;
         }
         try {
             DatabaseMetaData meta = connection.getMetaData();
@@ -81,11 +82,12 @@ public class MySQLDatabase extends Database {
             logger.severe("Can only be used to create tables!");
             return;
         }
-        Connection connection = null;
+        Connection connection;
         try {
             connection = getConnection();
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, null, ex);
+            return;
         }
         try {
             Statement statement = connection.createStatement();
@@ -102,8 +104,8 @@ public class MySQLDatabase extends Database {
         try {
             QueryRunner run = new QueryRunner(dataSource);
             List beans = (List) run.query(sql, resultSetHandler);
-            for (int i = 0; i < beans.size(); i++) {
-                beansInfo.add(beans.get(i));
+            for (Object bean : beans) {
+                beansInfo.add(bean);
             }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex);
