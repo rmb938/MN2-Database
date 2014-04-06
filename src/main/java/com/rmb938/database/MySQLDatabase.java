@@ -78,7 +78,7 @@ public class MySQLDatabase extends Database {
     }
 
     public void createTable(String sql) {
-        if (sql.startsWith("CREATE ") == false || sql.startsWith("create") == false) {
+        if (sql.startsWith("CREATE") == false && sql.startsWith("create") == false) {
             logger.severe("Can only be used to create tables!");
             return;
         }
