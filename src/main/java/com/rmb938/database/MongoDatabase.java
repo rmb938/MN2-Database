@@ -3,6 +3,8 @@ package com.rmb938.database;
 import com.mongodb.*;
 
 import java.net.UnknownHostException;
+import java.util.AbstractMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class MongoDatabase extends Database {
@@ -32,7 +34,7 @@ public class MongoDatabase extends Database {
         return new MongoClient(address, port);
     }
 
-    private void returnClient(MongoClient mongoClient) {
+    public void returnClient(MongoClient mongoClient) {
         mongoClient.close();
     }
 
@@ -108,7 +110,7 @@ public class MongoDatabase extends Database {
         }
     }
 
-    public DBCursor findMany(String collection, DBObject query) {
+    public Map.Entry<DBCursor, MongoClient> findMany(String collection, DBObject query) {
         DBCursor dbCursor = null;
         MongoClient client;
         try {
@@ -121,13 +123,11 @@ public class MongoDatabase extends Database {
             DBCollection dbCollection = getCollection(client, collection);
 
             dbCursor = dbCollection.find(query);
-
-            returnClient(client);
         }
-        return dbCursor;
+        return new AbstractMap.SimpleEntry<DBCursor, MongoClient>(dbCursor, client);
     }
 
-    public DBCursor findMany(String collection) {
+    public Map.Entry<DBCursor, MongoClient> findMany(String collection) {
         DBCursor dbCursor = null;
         MongoClient client;
         try {
@@ -140,14 +140,11 @@ public class MongoDatabase extends Database {
             DBCollection dbCollection = getCollection(client, collection);
 
             dbCursor = dbCollection.find();
-
-            returnClient(client);
         }
-        return dbCursor;
+        return new AbstractMap.SimpleEntry<DBCursor, MongoClient>(dbCursor, client);
     }
 
     public void insert(String collection, DBObject object) {
-        DBCursor dbCursor = null;
         MongoClient client;
         try {
             client = getClient();
