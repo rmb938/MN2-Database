@@ -1,8 +1,6 @@
 package com.rmb938.database;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
 
 import java.net.UnknownHostException;
 import java.util.logging.Logger;
@@ -30,17 +28,154 @@ public class MongoDatabase extends Database {
         return mongoClient.getDB(database);
     }
 
-    public MongoClient getClient() throws UnknownHostException {
+    private MongoClient getClient() throws UnknownHostException {
         return new MongoClient(address, port);
     }
 
-    public void returnClient(MongoClient mongoClient) {
+    private void returnClient(MongoClient mongoClient) {
         mongoClient.close();
     }
 
-    public DBCollection getCollection(MongoClient mongoClient, String collectionName) {
+    private DBCollection getCollection(MongoClient mongoClient, String collectionName) {
         DB database = getDatabase(mongoClient);
         return database.getCollection(collectionName);
+    }
+
+    public boolean collectionExists(String collectionName) {
+        MongoClient client;
+        boolean exists = false;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return false;
+        }
+        if (client != null) {
+            DB database = getDatabase(client);
+            exists = database.collectionExists(collectionName);
+            returnClient(client);
+        }
+        return exists;
+    }
+
+    public void createCollection(String collectionName) {
+        MongoClient client;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return;
+        }
+        if (client != null) {
+            DB database = getDatabase(client);
+            database.createCollection(collectionName, new BasicDBObject("capped", false));
+        }
+    }
+
+    public DBObject findOne(String collection, DBObject query) {
+        DBObject dbObject = null;
+        MongoClient client;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return null;
+        }
+        if (client != null) {
+            DBCollection dbCollection = getCollection(client, collection);
+
+            dbObject = dbCollection.findOne(query);
+
+            returnClient(client);
+        }
+        return dbObject;
+    }
+
+    public void remove(String collection, DBObject query) {
+        MongoClient client;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return;
+        }
+        if (client != null) {
+            DBCollection dbCollection = getCollection(client, collection);
+
+            dbCollection.remove(query);
+
+            returnClient(client);
+        }
+    }
+
+    public DBCursor findMany(String collection, DBObject query) {
+        DBCursor dbCursor = null;
+        MongoClient client;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return null;
+        }
+        if (client != null) {
+            DBCollection dbCollection = getCollection(client, collection);
+
+            dbCursor = dbCollection.find(query);
+
+            returnClient(client);
+        }
+        return dbCursor;
+    }
+
+    public DBCursor findMany(String collection) {
+        DBCursor dbCursor = null;
+        MongoClient client;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return null;
+        }
+        if (client != null) {
+            DBCollection dbCollection = getCollection(client, collection);
+
+            dbCursor = dbCollection.find();
+
+            returnClient(client);
+        }
+        return dbCursor;
+    }
+
+    public void insert(String collection, DBObject object) {
+        DBCursor dbCursor = null;
+        MongoClient client;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return;
+        }
+        if (client != null) {
+            DBCollection dbCollection = getCollection(client, collection);
+            dbCollection.insert(object);
+        }
+    }
+
+    public void updateDocument(String collection, DBObject query, DBObject document) {
+        MongoClient client;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return;
+        }
+        if (client != null) {
+            DBCollection dbCollection = getCollection(client, collection);
+
+            dbCollection.update(query, document);
+
+            returnClient(client);
+        }
     }
 
 }
