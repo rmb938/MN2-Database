@@ -31,7 +31,11 @@ public class MongoDatabase extends Database {
     }
 
     private MongoClient getClient() throws UnknownHostException {
-        return new MongoClient(address, port);
+        long start = System.currentTimeMillis();
+        MongoClient mongoClient = new MongoClient(address, port);
+        long end = System.currentTimeMillis()-start;
+        logger.info("Mongo Time: "+end);
+        return mongoClient;
     }
 
     public void returnClient(MongoClient mongoClient) {
@@ -71,6 +75,7 @@ public class MongoDatabase extends Database {
         if (client != null) {
             DB database = getDatabase(client);
             database.createCollection(collectionName, new BasicDBObject("capped", false));
+            returnClient(client);
         }
     }
 
@@ -155,6 +160,7 @@ public class MongoDatabase extends Database {
         if (client != null) {
             DBCollection dbCollection = getCollection(client, collection);
             dbCollection.insert(object);
+            returnClient(client);
         }
     }
 
