@@ -31,11 +31,7 @@ public class MongoDatabase extends Database {
     }
 
     private MongoClient getClient() throws UnknownHostException {
-        long start = System.currentTimeMillis();
-        MongoClient mongoClient = new MongoClient(address, port);
-        long end = System.currentTimeMillis()-start;
-        logger.info("Mongo Time: "+end);
-        return mongoClient;
+        return new MongoClient(address, port);
     }
 
     public void returnClient(MongoClient mongoClient) {
@@ -129,7 +125,7 @@ public class MongoDatabase extends Database {
 
             dbCursor = dbCollection.find(query);
         }
-        return new AbstractMap.SimpleEntry<DBCursor, MongoClient>(dbCursor, client);
+        return new AbstractMap.SimpleEntry<>(dbCursor, client);
     }
 
     public Map.Entry<DBCursor, MongoClient> findMany(String collection) {
@@ -146,7 +142,7 @@ public class MongoDatabase extends Database {
 
             dbCursor = dbCollection.find();
         }
-        return new AbstractMap.SimpleEntry<DBCursor, MongoClient>(dbCursor, client);
+        return new AbstractMap.SimpleEntry<>(dbCursor, client);
     }
 
     public void insert(String collection, DBObject object) {
