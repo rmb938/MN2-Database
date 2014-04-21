@@ -160,6 +160,21 @@ public class MongoDatabase extends Database {
         }
     }
 
+    public void delete(String collection, DBObject query) {
+        MongoClient client;
+        try {
+            client = getClient();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return;
+        }
+        if (client != null) {
+            DBCollection dbCollection = getCollection(client, collection);
+            dbCollection.remove(query);
+            returnClient(client);
+        }
+    }
+
     public void updateDocument(String collection, DBObject query, DBObject document) {
         MongoClient client;
         try {
