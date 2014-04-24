@@ -14,28 +14,34 @@ public class MongoDatabase extends Database {
     private final String database;
     private final String address;
     private final int port;
+    private MongoClient mongoClient;
 
     public MongoDatabase(String database, String address, int port) {
         this.database = database;
         this.address = address;
         this.port = port;
+        setupDatabase();
     }
 
     @Override
     public void setupDatabase() {
-
+        try {
+            mongoClient = new MongoClient(address, port);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     private DB getDatabase(MongoClient mongoClient) {
-        return mongoClient.getDB(database);
+        DB db = mongoClient.getDB(database);
+        if (db != null) {
+            db.requestEnsureConnection();
+        }
+        return db;
     }
 
     private MongoClient getClient() throws UnknownHostException {
-        return new MongoClient(address, port);
-    }
-
-    public void returnClient(MongoClient mongoClient) {
-        mongoClient.close();
+        return mongoClient;
     }
 
     private DBCollection getCollection(MongoClient mongoClient, String collectionName) {
@@ -55,7 +61,6 @@ public class MongoDatabase extends Database {
         if (client != null) {
             DB database = getDatabase(client);
             exists = database.collectionExists(collectionName);
-            returnClient(client);
         }
         return exists;
     }
@@ -71,7 +76,6 @@ public class MongoDatabase extends Database {
         if (client != null) {
             DB database = getDatabase(client);
             database.createCollection(collectionName, new BasicDBObject("capped", false));
-            returnClient(client);
         }
     }
 
@@ -88,8 +92,6 @@ public class MongoDatabase extends Database {
             DBCollection dbCollection = getCollection(client, collection);
 
             dbObject = dbCollection.findOne(query);
-
-            returnClient(client);
         }
         return dbObject;
     }
@@ -106,8 +108,6 @@ public class MongoDatabase extends Database {
             DBCollection dbCollection = getCollection(client, collection);
 
             dbCollection.remove(query);
-
-            returnClient(client);
         }
     }
 
@@ -156,7 +156,6 @@ public class MongoDatabase extends Database {
         if (client != null) {
             DBCollection dbCollection = getCollection(client, collection);
             dbCollection.insert(object);
-            returnClient(client);
         }
     }
 
@@ -171,7 +170,6 @@ public class MongoDatabase extends Database {
         if (client != null) {
             DBCollection dbCollection = getCollection(client, collection);
             dbCollection.remove(query);
-            returnClient(client);
         }
     }
 
@@ -187,8 +185,6 @@ public class MongoDatabase extends Database {
             DBCollection dbCollection = getCollection(client, collection);
 
             dbCollection.update(query, document);
-
-            returnClient(client);
         }
     }
 
