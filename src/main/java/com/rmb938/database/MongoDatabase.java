@@ -3,8 +3,6 @@ package com.rmb938.database;
 import com.mongodb.*;
 
 import java.net.UnknownHostException;
-import java.util.AbstractMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 public class MongoDatabase extends Database {
@@ -15,6 +13,7 @@ public class MongoDatabase extends Database {
     private final String address;
     private final int port;
     private MongoClient mongoClient;
+    private DB db;
 
     public MongoDatabase(String database, String address, int port) {
         this.database = database;
@@ -27,16 +26,14 @@ public class MongoDatabase extends Database {
     public void setupDatabase() {
         try {
             mongoClient = new MongoClient(address, port);
+            db = mongoClient.getDB(database);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
     }
 
-    private DB getDatabase(MongoClient mongoClient) {
-        DB db = mongoClient.getDB(database);
-        if (db != null) {
-            db.requestEnsureConnection();
-        }
+    private DB getDatabase() {
+        db.requestEnsureConnection();
         return db;
     }
 
@@ -44,148 +41,54 @@ public class MongoDatabase extends Database {
         return mongoClient;
     }
 
-    private DBCollection getCollection(MongoClient mongoClient, String collectionName) {
-        DB database = getDatabase(mongoClient);
+    private DBCollection getCollection(String collectionName) {
+        DB database = getDatabase();
         return database.getCollection(collectionName);
     }
 
     public boolean collectionExists(String collectionName) {
-        MongoClient client;
-        boolean exists = false;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return false;
-        }
-        if (client != null) {
-            DB database = getDatabase(client);
-            exists = database.collectionExists(collectionName);
-        }
-        return exists;
+        DB database = getDatabase();
+        return database.collectionExists(collectionName);
     }
 
     public void createCollection(String collectionName) {
-        MongoClient client;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return;
-        }
-        if (client != null) {
-            DB database = getDatabase(client);
-            database.createCollection(collectionName, new BasicDBObject("capped", false));
-        }
+        DB database = getDatabase();
+        database.createCollection(collectionName, new BasicDBObject("capped", false));
     }
 
     public DBObject findOne(String collection, DBObject query) {
-        DBObject dbObject = null;
-        MongoClient client;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return null;
-        }
-        if (client != null) {
-            DBCollection dbCollection = getCollection(client, collection);
-
-            dbObject = dbCollection.findOne(query);
-        }
-        return dbObject;
+        DBCollection dbCollection = getCollection(collection);
+        return dbCollection.findOne(query);
     }
 
     public void remove(String collection, DBObject query) {
-        MongoClient client;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return;
-        }
-        if (client != null) {
-            DBCollection dbCollection = getCollection(client, collection);
-
-            dbCollection.remove(query);
-        }
+        DBCollection dbCollection = getCollection(collection);
+        dbCollection.remove(query);
     }
 
-    public Map.Entry<DBCursor, MongoClient> findMany(String collection, DBObject query) {
-        DBCursor dbCursor = null;
-        MongoClient client;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return null;
-        }
-        if (client != null) {
-            DBCollection dbCollection = getCollection(client, collection);
-
-            dbCursor = dbCollection.find(query);
-        }
-        return new AbstractMap.SimpleEntry<>(dbCursor, client);
+    public DBCursor findMany(String collection, DBObject query) {
+        DBCollection dbCollection = getCollection(collection);
+        return dbCollection.find(query);
     }
 
-    public Map.Entry<DBCursor, MongoClient> findMany(String collection) {
-        DBCursor dbCursor = null;
-        MongoClient client;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return null;
-        }
-        if (client != null) {
-            DBCollection dbCollection = getCollection(client, collection);
-
-            dbCursor = dbCollection.find();
-        }
-        return new AbstractMap.SimpleEntry<>(dbCursor, client);
+    public DBCursor findMany(String collection) {
+        DBCollection dbCollection = getCollection(collection);
+        return dbCollection.find();
     }
 
     public void insert(String collection, DBObject object) {
-        MongoClient client;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return;
-        }
-        if (client != null) {
-            DBCollection dbCollection = getCollection(client, collection);
-            dbCollection.insert(object);
-        }
+        DBCollection dbCollection = getCollection(collection);
+        dbCollection.insert(object);
     }
 
     public void delete(String collection, DBObject query) {
-        MongoClient client;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return;
-        }
-        if (client != null) {
-            DBCollection dbCollection = getCollection(client, collection);
-            dbCollection.remove(query);
-        }
+        DBCollection dbCollection = getCollection(collection);
+        dbCollection.remove(query);
     }
 
     public void updateDocument(String collection, DBObject query, DBObject document) {
-        MongoClient client;
-        try {
-            client = getClient();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return;
-        }
-        if (client != null) {
-            DBCollection dbCollection = getCollection(client, collection);
-
-            dbCollection.update(query, document);
-        }
+        DBCollection dbCollection = getCollection(collection);
+        dbCollection.update(query, document);
     }
 
 }
