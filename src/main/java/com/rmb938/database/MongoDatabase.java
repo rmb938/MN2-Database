@@ -12,7 +12,6 @@ public class MongoDatabase extends Database {
     private final String database;
     private final String address;
     private final int port;
-    private MongoClient mongoClient;
     private DB db;
 
     public MongoDatabase(String database, String address, int port) {
@@ -25,7 +24,7 @@ public class MongoDatabase extends Database {
     @Override
     public void setupDatabase() {
         try {
-            mongoClient = new MongoClient(address, port);
+            MongoClient mongoClient = new MongoClient(address, port);
             db = mongoClient.getDB(database);
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -35,10 +34,6 @@ public class MongoDatabase extends Database {
     private DB getDatabase() {
         db.requestEnsureConnection();
         return db;
-    }
-
-    private MongoClient getClient() throws UnknownHostException {
-        return mongoClient;
     }
 
     private DBCollection getCollection(String collectionName) {
@@ -58,7 +53,11 @@ public class MongoDatabase extends Database {
 
     public DBObject findOne(String collection, DBObject query) {
         DBCollection dbCollection = getCollection(collection);
-        return dbCollection.findOne(query);
+        DBCursor dbCursor = dbCollection.find(query).limit(1);
+        if (dbCursor.hasNext() == false) {
+            return null;
+        }
+        return dbCursor.next();
     }
 
     public void remove(String collection, DBObject query) {
